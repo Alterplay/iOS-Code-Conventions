@@ -1,0 +1,207 @@
+<p><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link type="text/css" rel="stylesheet" media="screen" href="./style.css"></p>
+
+<h1>Code conventions</h1>
+
+<p><em>Alterplay 2012</em></p>
+
+<h3>Table of contents</h3>
+
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#classes">Classes</a></li>
+<li><a href="#methods">Methods</a></li>
+<li><a href="#variables">Variables</a></li>
+<li><a href="#constants">Constants</a></li>
+<li><a href="#indentation">Indentation</a></li>
+</ol>
+
+<h2 id="overview">1. Overview</h2>
+
+<p>This Code Conventions (CC) document contains standard conventions that we at Alterplay follow and recommend that others follow.
+It covers filenames, file organization, indentation, comments, declarations, statements, white space, naming conventions, programming practices and includes some code examples.</p>
+
+<h3>1.1. Some reasons for following conventions</h3>
+
+<ul>
+<li>80% of the lifetime cost of a piece of software goes to maintenance.</li>
+<li>Hardly any software is maintained for its whole life by the original author.</li>
+<li>Code conventions improve the readability of the software, allowing engineers to understand new code more quickly and thoroughly.</li>
+<li>You will forget why you've wrote this awesome line with variable <code>superVar</code> probably in 2 weeks.</li>
+</ul>
+
+<h3>1.2. Links to read</h3>
+
+<ul>
+<li>Cocoa Style for Objective-C by Scott Stevenson (<a href="http://cocoadevcentral.com/articles/000082.php">part one</a>, <a href="http://cocoadevcentral.com/articles/000083.php">part two</a>).</li>
+</ul>
+
+<h2 id="classes">2. Classes</h2>
+
+<p>Classes are the main and usually the only block type for building your application.</p>
+
+<ol>
+<li><p>Class name should be as short as possible. Use only real english words. Use only <code>CamelCaseForNamingYourClasses</code>. Class name should be capitalized.</p></li>
+<li><p>Class name should consist of two main parts: <em>function</em> + <em>type</em>. For example, if I have a farm class that raises pigs I will name my class <code>PigRaisingFarm</code>. If a short name like <code>PigFarm</code> makes sense then you can use the short one. Some examples for most used class types:</p>
+
+<ul>
+<li><code>Article</code> &mdash; entity class for model.</li>
+<li><code>ArticleListViewController</code> &mdash; UIViewController subclass for managing list of Article entities.</li>
+<li><code>ArticleViewController</code> &mdash; UIViewController subclass for viewing Article entity.</li>
+<li><code>ArticleManager</code> &mdash; a DAO (data access object) for Article entities.</li>
+<li><code>ArticleView</code> &mdash; UIView subclass for displaying Article entity information.</li>
+</ul></li>
+<li><p>If your class is included in a shared repository/library add a prefix to it's name because Objective-C doesn't support namespaces.</p></li>
+<li><p>If you create a subclass for standard UIKit's class to customize it &mdash; for example, a subclass of UINavigationController, you should name it <code>&lt;MyProject&gt;NavigationController</code>, where <strong>\<MyProject\></strong> should be replaced by your project name. </p></li>
+</ol>
+
+<h3>2.1. Header file (*.h)</h3>
+
+<p>Header file is a public interface to your class. Design it as if you're creating an opensource library.</p>
+
+<ol>
+<li><p>Class declaration example:</p>
+
+<pre><code>//
+//  MyClass.h
+//  Project
+//
+//  Class description.
+//
+//  Created by Author on 10/25/11.
+//  Copyright (c) 2012 Company. All rights reserved.
+//
+
+
+@interface MyClass : NSObject
+
+
+@property (strong, nonatomic) id myVar;
+@property (assign, nonatomic) NSUInteger myInteger;
+
+
+@property (strong, nonatomic) UILabel *myLabel;
+
+
+/**
+ * Method comment. Markdown is welcomed.
+ */
+- (void)doSomething;
+
+
+@end
+</code></pre></li>
+<li><p>Only public stuff should be placed in *.h file. To create private class ivars, properties, methods place your private code in an <code>@interface</code> block in *.m file.</p></li>
+<li><p>Combine similar class variables and methods to groups with an optional comment as a title. It will make your code more readable and clean. For example:</p>
+
+<pre><code>///-----
+/// Data
+///-----
+@property (nonatomic, retain) NSString *entityName;
+@property (nonatomic, retain) NSManagedObjectContext *moc;
+
+
+///----------------
+/// Creating entity
+///----------------
+- (id)create;
+- (id)createWithDictionary:(NSDictionary *)dictionary;
+
+
+///----------------
+/// Updating entity
+///----------------
+- (void)updateEntity:(id)entity fromDictionary:(NSDictionary *)dictionary;
+- (void)updateEntity:(id)entity fieldName:(NSString *)fieldName fromDictionary:(NSDictionary *)dictionary byKey:(NSString *)key;
+</code></pre>
+
+<p>Such strange comments are useful for generation <a href="http://gentlebytes.com/appledoc/">appledoc</a>, which is used widely by open source developers.</p></li>
+<li><p>Write descriptive comments for your class. They should be placed at the line "Class description." (before the declaration).</p></li>
+</ol>
+
+<h3>2.2. Body file (*.m)</h3>
+
+<ol>
+<li><p>Class body example:</p>
+
+<pre><code>//
+//  MyClass.m
+//  Project
+//
+//  Created by Author on 10/25/11.
+//  Copyright (c) 2012 Company. All rights reserved.
+//
+
+
+#import "MyClass.h"
+
+
+@interface MyClass
+
+
+@end
+
+
+@implementation MyClass
+
+
+#pragma mark - Object lifecycle
+
+
+- (id)init
+{
+    ... 
+}
+</code></pre></li>
+<li><p>Constructors start with the <code>- (id)init…</code> prefix (in case you didn't know). </p></li>
+<li><p>Static constructors start with <code>- (id)entity…</code> prefix. For example, for class named <code>City</code> static constructor name with city title initializing will be <code>+ (id)cityWithTitle:(NSString *)title</code>.</p></li>
+<li><p>Using data accessors (getters and setters) with the <code>self.</code> prefix is <strong>strongly recommended</strong> and should be preferred in every case except those when you need direct ivar access.</p></li>
+<li><p>Combine similar class variables and methods to groups with a title in format <code>#pragma mark - Group title</code>. Example:</p>
+
+<pre><code>#pragma mark - Entity description
+
+
+- (id)entityDescription
+{
+    return [NSEntityDescription …];
+}
+
+
+#pragma mark - Creating entity
+
+
+- (id)create
+{
+    return [NSEntityDescription …];
+}
+
+
+#pragma mark - Updating entity
+
+
+- (void)updateEntity:(id)entity fromDictionary:(NSDictionary *)dictionary
+{
+    …
+}
+
+
+- (void)updateEntity:(id)entity fieldName:(NSString *)fieldName fromDictionary:(NSDictionary *)dictionary byKey:(NSString *)key
+{
+    …
+}
+</code></pre></li>
+<li><p>If you need to declare private ivars, properties, methods, you can do this in an <code>@interface</code> block before <code>@implementation</code>, for example:</p>
+
+<pre><code>@interface MyClass ()
+
+
+@property (…) bool mySecretVar;
+
+
+@end
+
+
+@implementation
+…
+</code></pre></li>
+</ol>
