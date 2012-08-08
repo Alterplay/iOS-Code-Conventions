@@ -1,6 +1,6 @@
 compile:
-	markdown "Code Conventions.md" > ./web/index.html
+	markdown "Code Conventions.md" > ./Publish/index.html
 
 publish: compile
-	rsync -r --progress "./web/" "alterplay.com:~/http/cc"
+	rsync -r --progress "./Publish/" "alterplay.com:~/http/ios-code-conventions"
 
