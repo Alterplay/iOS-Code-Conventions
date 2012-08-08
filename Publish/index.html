@@ -14,6 +14,8 @@
 <li><a href="#variables">Variables</a></li>
 <li><a href="#constants">Constants</a></li>
 <li><a href="#indentation">Indentation</a></li>
+<li><a href="#code-nesting">Code nesting</a></li>
+<li><a href="#literals">Literals</a></li>
 </ol>
 
 <h2 id="overview">1. Overview</h2>
@@ -30,7 +32,17 @@ It covers filenames, file organization, indentation, comments, declarations, sta
 <li>You will forget why you've wrote this awesome line with variable <code>superVar</code> probably in 2 weeks.</li>
 </ul>
 
-<h3>1.2. Links to read</h3>
+<h3>1.2. Rules</h3>
+
+<p>There are some cases that are not yet covered within this document. Remember these rules:</p>
+
+<ol>
+<li><p>Respect your colleagues but keep in mind that they are less smart than you. Always simplify. Write comments when code is not transparent.</p></li>
+<li><p>Pay attention how Xcode generates code, how Apple SDK examples are done, when Xcode does automatic code formatting etc. We're in Apple's ecosystem and playing by their rules will save us time later.</p></li>
+<li><p>Keep with the code style and conventions of the project (if there are any). If you take a project someone is developing for more than couple of weeks - don't rewrite everything, just be humble and follow their style.</p></li>
+</ol>
+
+<h3>1.3. Links to read</h3>
 
 <ul>
 <li>Cocoa Style for Objective-C by Scott Stevenson (<a href="http://cocoadevcentral.com/articles/000082.php">part one</a>, <a href="http://cocoadevcentral.com/articles/000083.php">part two</a>).</li>
@@ -204,4 +216,204 @@ It covers filenames, file organization, indentation, comments, declarations, sta
 @implementation
 …
 </code></pre></li>
+</ol>
+
+<h2 id="methods">Methods</h2>
+
+<blockquote>
+  <p>Developers do much more reading of code than writing, so Objective-C and Cocoa are designed to read well.</p>
+</blockquote>
+
+<ol>
+<li><p>You should choose a method name based on <strong>how it will look in actual use</strong>. Let's say I want to write an in-memory file object written to disk. In some languages, that would look like this:</p>
+
+<pre><code>fileWrapper.write(path, true, true);
+</code></pre>
+
+<p>In Cocoa/Objective-C, it looks like this:</p>
+
+<pre><code>[fileWrapper writeToFile:path atomically:YES updateFilenames:YES];
+</code></pre>
+
+<p>When creating a method, ask yourself if its behavior will be clear from its name alone, particularly when surrounded by tens of thousands of lines of code.</p>
+
+<p>Reading a message as a phrase is a good way to test your method name:</p>
+
+<pre><code>// Open the file with this application and deactivate
+[finder openFile:mailing withApplication:@"MailDrop" andDeactivate:YES];
+</code></pre>
+
+<p>This message is sent to NSWorkspace (aka Finder), and it clearly passes the "phrase" test.</p></li>
+<li><p>Last point permits you creating very long method names so you should not follow this fanatically. Be wise.</p></li>
+<li><p>Don't use the <strong>get</strong> prefix on simple accessors. Instance variables and methods can have the same name, so use this to your advantage:</p>
+
+<pre><code>- (NSString *)name;
+- (NSString *)color;
+
+
+name = [object name];
+color = [object color];
+</code></pre></li>
+<li><p>Use the <strong>set</strong> prefix on setters, for example:</p>
+
+<pre><code>[object setName:name];
+[object setColor:color];
+</code></pre></li>
+<li><p>Place comments to your methods in the header file, for example:</p>
+
+<pre><code>/**
+ * Awesome method to make complex decisions
+ */
+- (void)decide;
+</code></pre>
+
+<p>Such strange comments are useful for generation <a href="http://gentlebytes.com/appledoc/">appledoc</a>, which is used widely by open source developers.</p></li>
+</ol>
+
+<h2 id="variables">Variables</h2>
+
+<ol>
+<li><p>Variable names are written CamelCase, but start with a lowerCaseLetter:</p>
+
+<pre><code>NSString *streetAddress = @"1 Infinite Loop";
+NSString *cityName = @"Cupertino";
+</code></pre></li>
+<li><p>You should always make a space between class name and a *:</p>
+
+<pre><code>NSString *myVar;  // Correct
+NSString * myVar; // Incorrect
+NSString* myVar;  // Incorrect
+</code></pre></li>
+<li><p>You should choose clear, distinct variable names over terse ones. Ambiguity frequently results in bugs, so be explicit.</p>
+
+<ul>
+<li><p>Correct</p>
+
+<pre><code>NSString *hostName;
+NSNumber *ipAddress;
+NSArray *accounts;
+</code></pre></li>
+<li><p>Incorrect</p>
+
+<pre><code>NSString *HST_NM; // All caps and too terse
+NSNumber *theip;  // Is it a word or abbreviation?
+NSMutableArray *nsma; // Completely ambiguous
+</code></pre></li>
+</ul></li>
+</ol>
+
+<h2 id="constants">Constants</h2>
+
+<ol>
+<li><p>Constants should be named all caps with underscore as a word delimiter, for example: <code>MY_FAVORITE_CONST</code>.</p></li>
+<li><p>It is better to declare constants as preprocessor commands with <code>#define</code> block:</p>
+
+<pre><code>#define MY_CONSTANT @"MyConstant"
+#define SIZE_HEIGHT 200.0f
+</code></pre></li>
+<li><p>Another way is creating static <code>NSString</code> variables:</p>
+
+<ul>
+<li><p>in your <code>@interface</code> block:</p>
+
+<pre><code>extern NSString * const MY_FAVORITE_CONST;
+</code></pre></li>
+<li><p>in your <code>@implementation</code> block:</p>
+
+<pre><code>NSString * const MY_FAVORITE_CONST = @"My favorite const value";
+</code></pre></li>
+</ul></li>
+</ol>
+
+<h2 id="indentation">Indentation</h2>
+
+<ol>
+<li><p>Use tabs indentation. This will make possible for other developers to setup as big indent as he wants without modifying any code.</p></li>
+<li><p>Each nested block of code should be indented with one tab relatively to its parent. For example:</p>
+
+<pre><code>for (...) {
+    if (...) {
+        initialized = YES;
+        if (...) {
+            settings = [[NSMutableDictionary alloc] initWithContentsOfFile:[self filePath]];
+        } else {
+            settings = [[NSMutableDictionary alloc] init];
+        }
+    }
+}
+</code></pre></li>
+<li><p>Format your code in first 100 symbol columns so other developer with 1280x768 screen can view it comfortably. Set page guide at column 100.</p></li>
+<li><p>If method you're using is very long, it is recommended to separate it's params with returns. For example:</p>
+
+<pre><code>- (void)fetchDaysForCategoryId:(NSUInteger)categoryId withParams:(NSDictionary *)params andFilters:(NSDictionary *)filters success:(void(^)())success failure:(void(^)())failure;
+</code></pre>
+
+<p>This one looks a bit messy. Better way:</p>
+
+<pre><code>- (void)fetchDaysForCategoryId:(NSUInteger)categoryId 
+                    withParams:(NSDictionary *)params 
+                    andFilters:(NSDictionary *)filters 
+                       success:(void(^)())success
+                       failure:(void(^)())failure;
+</code></pre>
+
+<p>In use:</p>
+
+<pre><code>[myObject
+ fetchDaysForCategoryId:1
+ withParams:params
+ andFilters:filters
+ success:nil
+ failure:^{
+    NSLog(@"Error.");
+ }];
+</code></pre></li>
+</ol>
+
+<h2 id="code-nesting">Code nesting</h2>
+
+<ol>
+<li><p>Methods are recommended to write this way:</p>
+
+<pre><code>-(void)myMethod
+{
+    …
+}
+</code></pre>
+
+<p>This is how Xcode autocompletes it.</p></li>
+<li><p>Nested code blocks should be written this way:</p>
+
+<pre><code>if (something) {
+    [self doSomething];
+    switch (type) {
+        case 1:
+            NSLog(@"1");
+            break;
+    }
+}
+</code></pre></li>
+<li><p>Write brackets even if you have only 1 line of nested code:</p>
+
+<pre><code>- (void)myMethod
+{
+    if (self.error) {
+        return;
+    }
+}
+</code></pre>
+
+<p>Following this rule you will produce cleaner code and will simplify editing when someone decides to add one more line of code.</p></li>
+</ol>
+
+<h2 id="literals">Literals</h2>
+
+<ol>
+<li><p>Float values should be written in this way:</p>
+
+<pre><code>float foo = 1.0f;
+float bar = 0.0f;
+</code></pre>
+
+<p>This way won't lead you to inaccuracy errors by type conversion fault. Besides this is how Apple writes float values in it's source code.</p></li>
 </ol>

@@ -12,6 +12,8 @@
 1. [Variables](#variables)
 1. [Constants](#constants)
 1. [Indentation](#indentation)
+1. [Code nesting](#code-nesting)
+1. [Literals](#literals)
 
 <h2 id="overview">1. Overview</h2>
 
@@ -24,7 +26,17 @@ It covers filenames, file organization, indentation, comments, declarations, sta
 * Code conventions improve the readability of the software, allowing engineers to understand new code more quickly and thoroughly.
 * You will forget why you've wrote this awesome line with variable `superVar` probably in 2 weeks.
 
-###1.2. Links to read
+###1.2. Rules
+
+There are some cases that are not yet covered within this document. Remember these rules:
+
+1. Respect your colleagues but keep in mind that they are less smart than you. Always simplify. Write comments when code is not transparent.
+
+1. Pay attention how Xcode generates code, how Apple SDK examples are done, when Xcode does automatic code formatting etc. We're in Apple's ecosystem and playing by their rules will save us time later.
+
+1. Keep with the code style and conventions of the project (if there are any). If you take a project someone is developing for more than couple of weeks - don't rewrite everything, just be humble and follow their style.
+
+###1.3. Links to read
 
 * Cocoa Style for Objective-C by Scott Stevenson ([part one][part_one], [part two][part_two]).
 
@@ -197,6 +209,8 @@ Header file is a public interface to your class. Design it as if you're creating
 
 	This message is sent to NSWorkspace (aka Finder), and it clearly passes the "phrase" test.
 
+1. Last point permits you creating very long method names so you should not follow this fanatically. Be wise.
+
 1. Don't use the **get** prefix on simple accessors. Instance variables and methods can have the same name, so use this to your advantage:
 
 		- (NSString *)name;
@@ -212,17 +226,21 @@ Header file is a public interface to your class. Design it as if you're creating
 
 1. Place comments to your methods in the header file, for example:
 
-		// Awesome method to make complex decisions
+		/**
+		 * Awesome method to make complex decisions
+		 */
 		- (void)decide;
+		
+	Such strange comments are useful for generation [appledoc](http://gentlebytes.com/appledoc/), which is used widely by open source developers.
 
 <h2 id="variables">Variables</h2>
 
-1. Variable names are written CamelCase, but start with a lower-case letter:
+1. Variable names are written CamelCase, but start with a lowerCaseLetter:
 
 		NSString *streetAddress = @"1 Infinite Loop";
 		NSString *cityName = @"Cupertino";
 
-1. You should always make a space between a type and a *:
+1. You should always make a space between class name and a *:
 
 		NSString *myVar;  // Correct
 		NSString * myVar; // Incorrect
@@ -246,7 +264,12 @@ Header file is a public interface to your class. Design it as if you're creating
 
 1. Constants should be named all caps with underscore as a word delimiter, for example: `MY_FAVORITE_CONST`.
 
-1. Example of constant declaration:
+1. It is better to declare constants as preprocessor commands with `#define` block:
+
+		#define MY_CONSTANT @"MyConstant"
+		#define SIZE_HEIGHT 200.0f
+
+1. Another way is creating static `NSString` variables:
 	* in your `@interface` block:
 			
 			extern NSString * const MY_FAVORITE_CONST;
@@ -257,7 +280,7 @@ Header file is a public interface to your class. Design it as if you're creating
 
 <h2 id="indentation">Indentation</h2>
 
-1. Use tabs indentation. This will make possible for other developer to setup as big indent as he wants without modifying any code.
+1. Use tabs indentation. This will make possible for other developers to setup as big indent as he wants without modifying any code.
 
 1. Each nested block of code should be indented with one tab relatively to its parent. For example:
 
@@ -265,11 +288,76 @@ Header file is a public interface to your class. Design it as if you're creating
 			if (...) {
 		        initialized = YES;
 				if (...) {
-					_settings = [[NSMutableDictionary alloc] initWithContentsOfFile:[self filePath]];
+					settings = [[NSMutableDictionary alloc] initWithContentsOfFile:[self filePath]];
 				} else {
-					_settings = [[NSMutableDictionary alloc] init];
+					settings = [[NSMutableDictionary alloc] init];
 				}
 			}
 		}
 
 1. Format your code in first 100 symbol columns so other developer with 1280x768 screen can view it comfortably. Set page guide at column 100.
+
+1. If method you're using is very long, it is recommended to separate it's params with returns. For example:
+
+		- (void)fetchDaysForCategoryId:(NSUInteger)categoryId withParams:(NSDictionary *)params andFilters:(NSDictionary *)filters success:(void(^)())success failure:(void(^)())failure;
+		
+	This one looks a bit messy. Better way:
+
+		- (void)fetchDaysForCategoryId:(NSUInteger)categoryId 
+		                    withParams:(NSDictionary *)params 
+		                    andFilters:(NSDictionary *)filters 
+		                       success:(void(^)())success
+		                       failure:(void(^)())failure;
+	
+	In use:
+	
+		[myObject
+		 fetchDaysForCategoryId:1
+		 withParams:params
+		 andFilters:filters
+		 success:nil
+		 failure:^{
+		 	NSLog(@"Error.");
+		 }];
+		 
+<h2 id="code-nesting">Code nesting</h2>
+
+1. Methods are recommended to write this way:
+
+		-(void)myMethod
+		{
+			…
+		}
+		
+	This is how Xcode autocompletes it.
+	
+1. Nested code blocks should be written this way:
+
+		if (something) {
+			[self doSomething];
+			switch (type) {
+				case 1:
+					NSLog(@"1");
+					break;
+			}
+		}
+
+1. Write brackets even if you have only 1 line of nested code:
+
+		- (void)myMethod
+		{
+			if (self.error) {
+				return;
+			}
+		}
+	
+	Following this rule you will produce cleaner code and will simplify editing when someone decides to add one more line of code.
+
+<h2 id="literals">Literals</h2>
+
+1. Float values should be written in this way:
+
+		float foo = 1.0f;
+		float bar = 0.0f;
+		
+	This way won't lead you to inaccuracy errors by type conversion fault. Besides this is how Apple writes float values in it's source code.
